@@ -3,14 +3,29 @@ import { v4 as uuid } from "uuid";
 import PlusIcon from "../icons/PlusIcon";
 import { Column } from "../types";
 import { ColumnContainer } from "./ColumnContainer";
-import { DndContext, DragOverlay, DragStartEvent } from "@dnd-kit/core";
-import { SortableContext } from "@dnd-kit/sortable";
+import {
+  DndContext,
+  DragEndEvent,
+  DragOverlay,
+  DragStartEvent,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import { SortableContext, arrayMove } from "@dnd-kit/sortable";
 import { createPortal } from "react-dom";
 
 function KanbanBoard() {
   const [columns, setColumns] = useState<Column[]>([]);
   const [activeColumn, setActiveColumn] = useState<Column | null>(null);
   const columnsId = useMemo(() => columns.map((c) => c.id), [columns]);
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 3,
+      },
+    })
+  );
 
   const createColumn = () => {
     const newColumn: Column = {
@@ -32,8 +47,28 @@ function KanbanBoard() {
     }
   };
 
+  const onDragEnd = (e: DragEndEvent) => {
+    const { active, over } = e;
+    if (!over) return;
+    const activeColumnId = active.id;
+    const overColumnId = over?.id;
+
+    if (activeColumnId === overColumnId) return;
+
+    setColumns((cols) => {
+      const activeColumnIndex = cols.findIndex((c) => c.id === activeColumnId);
+      const overColumnIndex = cols.findIndex((c) => c.id === overColumnId);
+
+      return arrayMove(cols, activeColumnIndex, overColumnIndex);
+    });
+  };
+
   return (
-    <DndContext onDragStart={onDragStart}>
+    <DndContext
+      onDragStart={onDragStart}
+      onDragEnd={onDragEnd}
+      sensors={sensors}
+    >
       <div
         className="
     m-auto
