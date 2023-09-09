@@ -2,12 +2,15 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import TrashIcon from "../icons/TrashIcon";
 import { Column } from "../types";
+import { useState } from "react";
 
 interface Props {
   column: Column;
   deleteColumn: (id: string) => void;
+  updateColumn: (id: string, title: string) => void;
 }
-const ColumnContainer = ({ column, deleteColumn }: Props) => {
+const ColumnContainer = ({ column, deleteColumn, updateColumn }: Props) => {
+  const [isEditing, setIsEditing] = useState(false);
   const {
     setNodeRef,
     attributes,
@@ -21,6 +24,7 @@ const ColumnContainer = ({ column, deleteColumn }: Props) => {
       type: "Column",
       column,
     },
+    disabled: isEditing,
   });
 
   const style = {
@@ -78,6 +82,7 @@ flex-col"
       flex
       items-center
       justify-between"
+        onClick={() => setIsEditing(true)}
       >
         <div
           className="
@@ -92,7 +97,20 @@ flex-col"
         >
           0
         </div>
-        {column.title}
+        {!isEditing && column.title}
+        {isEditing && (
+          <input
+            value={column.title}
+            autoFocus
+            onChange={(e) => updateColumn(column.id, e.target.value)}
+            onBlur={() => setIsEditing(false)}
+            onKeyDown={(e) => {
+              if (e.key !== "Enter") return;
+              setIsEditing(false);
+            }}
+            className="bg-black focus:border-rose-500 border rounded outline-none px-2"
+          />
+        )}
         <button
           className="
       stroke-gray-400

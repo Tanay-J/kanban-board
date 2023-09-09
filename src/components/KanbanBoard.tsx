@@ -63,6 +63,14 @@ function KanbanBoard() {
     });
   };
 
+  const updateColumn = (id: string, title: string) => {
+    const newColumns = columns.map((col) => {
+      if (col.id !== id) return col;
+      return { ...col, title };
+    });
+    setColumns(newColumns);
+  };
+
   return (
     <DndContext
       onDragStart={onDragStart}
@@ -88,6 +96,7 @@ function KanbanBoard() {
                 <ColumnContainer
                   column={col}
                   deleteColumn={deleteColumn}
+                  updateColumn={updateColumn}
                 ></ColumnContainer>
               ))}
             </SortableContext>
@@ -106,6 +115,7 @@ function KanbanBoard() {
               <ColumnContainer
                 column={activeColumn}
                 deleteColumn={deleteColumn}
+                updateColumn={updateColumn}
               ></ColumnContainer>
             )}
           </DragOverlay>,
