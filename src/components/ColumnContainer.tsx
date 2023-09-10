@@ -12,6 +12,7 @@ interface Props {
   updateColumn: (id: string, title: string) => void;
   createTask: (columnId: string) => void;
   deleteTask: (taskId: string) => void;
+  updateTask: (taskId: string, content: string) => void;
   tasks: Task[];
 }
 const ColumnContainer = ({
@@ -20,6 +21,7 @@ const ColumnContainer = ({
   updateColumn,
   createTask,
   deleteTask,
+  updateTask,
   tasks,
 }: Props) => {
   const [isEditing, setIsEditing] = useState(false);
@@ -126,7 +128,7 @@ flex-col"
         <button
           className="
       stroke-gray-400
-      hover: stroke-white
+      hover:stroke-white
       hover:bg-columnBackgroundColor
       rounded
       px-1
@@ -140,7 +142,11 @@ flex-col"
       {/* Column content */}
       <div className="flex flex-grow flex-col gap-4 p-2 overflow-x-hidden overflow-y-auto">
         {tasks.map((task) => (
-          <TaskCard task={task} deleteTask={deleteTask}></TaskCard>
+          <TaskCard
+            task={task}
+            deleteTask={deleteTask}
+            updateTask={updateTask}
+          ></TaskCard>
         ))}
       </div>
 

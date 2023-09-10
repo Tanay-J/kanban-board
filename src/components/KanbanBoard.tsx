@@ -87,6 +87,16 @@ function KanbanBoard() {
     setTasks(newTasks);
   };
 
+  const updateTask = (taskId: string, content: string) => {
+    const newTasks = tasks.map((task) => {
+      if (task.id === taskId) {
+        return { ...task, content };
+      }
+      return task;
+    });
+    setTasks(newTasks);
+  };
+
   return (
     <DndContext
       onDragStart={onDragStart}
@@ -115,6 +125,7 @@ function KanbanBoard() {
                   updateColumn={updateColumn}
                   createTask={createTask}
                   deleteTask={deleteTask}
+                  updateTask={updateTask}
                   tasks={tasks.filter((task) => task.columnId === col.id)}
                 ></ColumnContainer>
               ))}
@@ -137,6 +148,7 @@ function KanbanBoard() {
                 updateColumn={updateColumn}
                 createTask={createTask}
                 deleteTask={deleteTask}
+                updateTask={updateTask}
                 tasks={tasks.filter(
                   (task) => task.columnId === activeColumn.id
                 )}
