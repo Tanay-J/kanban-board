@@ -6,6 +6,7 @@ import { ColumnContainer } from "./ColumnContainer";
 import {
   DndContext,
   DragEndEvent,
+  DragOverEvent,
   DragOverlay,
   DragStartEvent,
   PointerSensor,
@@ -14,10 +15,13 @@ import {
 } from "@dnd-kit/core";
 import { SortableContext, arrayMove } from "@dnd-kit/sortable";
 import { createPortal } from "react-dom";
+import { TaskCard } from "./TaskCard";
 
 function KanbanBoard() {
   const [columns, setColumns] = useState<Column[]>([]);
   const [activeColumn, setActiveColumn] = useState<Column | null>(null);
+  const [activeTask, setActiveTask] = useState<Task | null>(null);
+
   const [tasks, setTasks] = useState<Task[]>([]);
   const columnsId = useMemo(() => columns.map((c) => c.id), [columns]);
   const sensors = useSensors(
@@ -39,6 +43,9 @@ function KanbanBoard() {
   const deleteColumn = (id: string) => {
     const updatedColumns = columns.filter((col) => col.id !== id);
     setColumns(updatedColumns);
+
+    const newTasks = tasks.filter((task) => task.columnId !== id);
+    setTasks(newTasks);
   };
 
   const onDragStart = (e: DragStartEvent) => {
@@ -46,9 +53,15 @@ function KanbanBoard() {
       setActiveColumn(e.active.data.current.column);
       return;
     }
+    if (e.active.data.current?.type === "Task") {
+      setActiveTask(e.active.data.current.task);
+      return;
+    }
   };
 
   const onDragEnd = (e: DragEndEvent) => {
+    // setActiveColumn(null);
+    // setActiveTask(null);
     const { active, over } = e;
     if (!over) return;
     const activeColumnId = active.id;
@@ -56,12 +69,57 @@ function KanbanBoard() {
 
     if (activeColumnId === overColumnId) return;
 
+    const isActiveAColumn = active.data.current?.type === "Column";
+    if (!isActiveAColumn) return;
+
     setColumns((cols) => {
       const activeColumnIndex = cols.findIndex((c) => c.id === activeColumnId);
       const overColumnIndex = cols.findIndex((c) => c.id === overColumnId);
 
       return arrayMove(cols, activeColumnIndex, overColumnIndex);
     });
+  };
+
+  const onDragOver = (e: DragOverEvent) => {
+    const { active, over } = e;
+    if (!over) return;
+    const activeId = active.id;
+    const overId = over.id;
+
+    if (activeId === overId) return;
+
+    const isActiveATask = active.data.current?.type === "Task";
+    const isOverATask = over.data.current?.type === "Task";
+
+    if (!isActiveATask) return;
+
+    if (isActiveATask && isOverATask) {
+      setTasks((tasks) => {
+        const activeIndex = tasks.findIndex((t) => t.id === activeId);
+        const overIndex = tasks.findIndex((t) => t.id === overId);
+
+        // tasks[activeIndex].columnId = tasks[overIndex].columnId;
+        if (tasks[activeIndex].columnId != tasks[overIndex].columnId) {
+          tasks[activeIndex].columnId = tasks[overIndex].columnId;
+          return arrayMove(tasks, activeIndex, overIndex - 1);
+        }
+
+        return arrayMove(tasks, activeIndex, overIndex);
+      });
+    }
+
+    const isOverAColumn = over.data.current?.type === "Column";
+
+    if (isActiveATask && isOverAColumn) {
+      setTasks((tasks) => {
+        const activeIndex = tasks.findIndex((t) => t.id === activeId);
+        const overIndex = tasks.findIndex((t) => t.id === overId);
+
+        // tasks[activeIndex].columnId = tasks[overIndex].columnId;
+        tasks[activeIndex].columnId = overId.toString();
+        return arrayMove(tasks, activeIndex, overIndex);
+      });
+    }
   };
 
   const updateColumn = (id: string, title: string) => {
@@ -101,6 +159,7 @@ function KanbanBoard() {
     <DndContext
       onDragStart={onDragStart}
       onDragEnd={onDragEnd}
+      onDragOver={onDragOver}
       sensors={sensors}
     >
       <div
@@ -153,6 +212,13 @@ function KanbanBoard() {
                   (task) => task.columnId === activeColumn.id
                 )}
               ></ColumnContainer>
+            )}
+            {activeTask && (
+              <TaskCard
+                task={activeTask}
+                deleteTask={deleteTask}
+                updateTask={updateTask}
+              ></TaskCard>
             )}
           </DragOverlay>,
           document.body

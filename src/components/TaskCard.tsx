@@ -1,6 +1,8 @@
 import { useState } from "react";
+import { CSS } from "@dnd-kit/utilities";
 import TrashIcon from "../icons/TrashIcon";
 import { Task } from "../types";
+import { useSortable } from "@dnd-kit/sortable";
 
 interface Props {
   task: Task;
@@ -15,9 +17,43 @@ function TaskCard({ task, deleteTask, updateTask }: Props) {
     setMouseIsOver(false);
   };
 
+  const {
+    setNodeRef,
+    attributes,
+    listeners,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: task.id,
+    data: {
+      type: "Task",
+      task,
+    },
+    disabled: isEditMode,
+  });
+
+  const style = {
+    transition,
+    transform: CSS.Transform.toString(transform),
+  };
+
+  if (isDragging) {
+    return (
+      <div
+        className="opacity-30 bg-mainBackgroundColor p-2.5 h-[100px] min-h-[100px] items-center flex text-left rounded-xl 
+    hover:ring-2 border-2 border-rose-500 cursor-grab relative"
+      ></div>
+    );
+  }
+
   if (isEditMode) {
     return (
       <div
+        ref={setNodeRef}
+        style={style}
+        {...attributes}
+        {...listeners}
         className="bg-mainBackgroundColor p-2.5 h-[100px] min-h-[100px] items-center flex text-left rounded-xl 
     hover:ring-2 hover:ring-inset hover: ring-rose-500 cursor-grab relative"
       >
@@ -37,8 +73,13 @@ function TaskCard({ task, deleteTask, updateTask }: Props) {
       </div>
     );
   }
+
   return (
     <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
       key={task.id}
       className="bg-mainBackgroundColor p-2.5 h-[100px] min-h-[100px] items-center flex text-left rounded-xl 
       hover:ring-2 hover:ring-inset hover: ring-rose-500 cursor-grab relative task"

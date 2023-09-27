@@ -1,8 +1,8 @@
-import { useSortable } from "@dnd-kit/sortable";
+import { SortableContext, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import TrashIcon from "../icons/TrashIcon";
 import { Column, Task } from "../types";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import PlusIcon from "../icons/PlusIcon";
 import { TaskCard } from "./TaskCard";
 
@@ -25,6 +25,8 @@ const ColumnContainer = ({
   tasks,
 }: Props) => {
   const [isEditing, setIsEditing] = useState(false);
+  const taskId = useMemo(() => tasks.map((t) => t.id), [tasks]);
+
   const {
     setNodeRef,
     attributes,
@@ -141,13 +143,15 @@ flex-col"
 
       {/* Column content */}
       <div className="flex flex-grow flex-col gap-4 p-2 overflow-x-hidden overflow-y-auto">
-        {tasks.map((task) => (
-          <TaskCard
-            task={task}
-            deleteTask={deleteTask}
-            updateTask={updateTask}
-          ></TaskCard>
-        ))}
+        <SortableContext items={taskId}>
+          {tasks.map((task) => (
+            <TaskCard
+              task={task}
+              deleteTask={deleteTask}
+              updateTask={updateTask}
+            ></TaskCard>
+          ))}
+        </SortableContext>
       </div>
 
       <button
